@@ -157,34 +157,49 @@ jobs:
         run: |
           echo "清空18PlusList.txt"
           echo "">$GITHUB_WORKSPACE/app/src/main/assets/18PlusList.txt
-      # fork 也能签 release：以 secrets 是否存在为准，而不是写死上游 owner。
-      # GitHub 不允许在 if 里直接读 secrets，所以先探测再决定。
-      - name: Detect signing secrets
-        id: sign_secrets
+      # release 签名优先级：
+      #   1) 仓库 Secrets（SIGNING_KEY / KEYSTORE_PASSWORD / KEY_ALIAS / KEY_PASSWORD）：上游与自备私钥走这条；
+      #   2) 仓库内 CI 专用密钥 .github/ci-release.jks：fork 零配置，每次用同一把 key，可相互覆盖安装。
+      # GitHub 不允许在 if 里直接读 secrets，所以统一在这里判断并写入 gradle.properties。
+      - name: Configure release signing
+        id: signing
         shell: bash
         env:
           SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
         run: |
-          if [ -n "$SIGNING_KEY" ]; then
-            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          set -euo pipefail
+          STORE_FILE=""
+          STORE_PASSWORD=""
+          KEY_ALIAS_VALUE=""
+          KEY_PASSWORD=""
+          if [ -n "${SIGNING_KEY:-}" ]; then
+            echo "$SIGNING_KEY" | base64 -d > "$GITHUB_WORKSPACE/app/my-release-key.jks"
+            STORE_FILE="my-release-key.jks"
+            STORE_PASSWORD="${{ secrets.KEYSTORE_PASSWORD }}"
+            KEY_ALIAS_VALUE="${{ secrets.KEY_ALIAS }}"
+            KEY_PASSWORD="${{ secrets.KEY_PASSWORD }}"
+            echo "::notice::使用仓库 Secrets 中的签名密钥"
+          elif [ -f "$GITHUB_WORKSPACE/.github/ci-release.jks" ]; then
+            cp "$GITHUB_WORKSPACE/.github/ci-release.jks" "$GITHUB_WORKSPACE/app/ci-release.jks"
+            STORE_FILE="ci-release.jks"
+            STORE_PASSWORD="legado-ci-fork"
+            KEY_ALIAS_VALUE="cirelease"
+            KEY_PASSWORD="legado-ci-fork"
+            echo "::warning::未配置 SIGNING_KEY，改用仓库内 CI 专用密钥签名；该密钥公开，只能覆盖安装同样用它签的包"
           else
-            echo "enabled=false" >> "$GITHUB_OUTPUT"
-            echo "::warning::未配置 SIGNING_KEY/KEYSTORE_PASSWORD/KEY_ALIAS/KEY_PASSWORD，release 产物将是未签名 APK，无法直接安装"
+            echo "::error::没有任何可用签名密钥，release 会是未签名 APK，已中止"
+            exit 1
           fi
-
-      - name: Release Apk Sign
-        if: steps.sign_secrets.outputs.enabled == 'true'
-        shell: bash
-        run: |
-          echo "${{ secrets.SIGNING_KEY }}" | base64 -d >"$GITHUB_WORKSPACE/app/my-release-key.jks"
 
           {
             echo ""
-            echo "RELEASE_STORE_FILE=my-release-key.jks"
-            echo "RELEASE_STORE_PASSWORD=${{ secrets.KEYSTORE_PASSWORD }}"
-            echo "RELEASE_KEY_ALIAS=${{ secrets.KEY_ALIAS }}"
-            echo "RELEASE_KEY_PASSWORD=${{ secrets.KEY_PASSWORD }}"
+            echo "RELEASE_STORE_FILE=$STORE_FILE"
+            echo "RELEASE_STORE_PASSWORD=$STORE_PASSWORD"
+            echo "RELEASE_KEY_ALIAS=$KEY_ALIAS_VALUE"
+            echo "RELEASE_KEY_PASSWORD=$KEY_PASSWORD"
           } >> "$GITHUB_WORKSPACE/gradle.properties"
+
+          echo "enabled=true" >> "$GITHUB_OUTPUT"
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
