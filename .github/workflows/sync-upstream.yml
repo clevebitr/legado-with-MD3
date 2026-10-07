@@ -1,0 +1,108 @@
+name: Sync upstream
+
+# 母仓库 HapeLee/legado-with-MD3 更新后，把它的 main 合并进本 fork 的 main。
+#
+# 三条硬规则：
+# 1. 只在“合并干净”时推送；一旦冲突就 merge --abort 并失败，绝不静默取舍。
+# 2. 推送使用 GITHUB_TOKEN，GitHub 不会因此触发其它 workflow，
+#    所以同步成功后显式 dispatch 验证与构建。
+# 3. 本分支自己的改动必须已 clean（无未提交内容）才会同步。
+on:
+  schedule:
+    - cron: '0 16 * * *' # UTC 16:00 = 北京时间 0:00
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+  issues: write
+
+concurrency:
+  group: sync-upstream
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    # 只允许在本 fork 里执行：万一该文件被合进母仓库，也不会去改母仓库
+    if: github.repository == 'clevebitr/legado-with-MD3'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v5
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: 合并母仓库 main（冲突则中止）
+        id: merge
+        run: |
+          set -euo pipefail
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "::error::工作区不干净（有未提交改动），先 clean 再同步"
+            git status --porcelain
+            exit 1
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git remote add upstream https://github.com/HapeLee/legado-with-MD3.git
+          git fetch --no-tags upstream main
+
+          BEFORE=$(git rev-parse HEAD)
+          UPSTREAM=$(git rev-parse upstream/main)
+          echo "本地 main: $BEFORE"
+          echo "母仓库 main: $UPSTREAM"
+
+          if [ "$BEFORE" = "$UPSTREAM" ]; then
+            echo "main 已与母仓库一致，无需同步"
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if ! git merge --no-edit upstream/main; then
+            git merge --abort || true
+            echo "::error::与母仓库合并冲突，已中止；请在本地解决后推送"
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 1
+          fi
+
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+          git --no-pager log --oneline -1
+
+      - name: 推送 main
+        if: steps.merge.outputs.changed == 'true'
+        run: git push origin main
+
+      - name: 触发验证与构建
+        if: steps.merge.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh workflow run verify.yml --ref main
+          gh workflow run auto-release.yml --ref main
+
+      - name: 同步失败时记录 issue
+        if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TITLE="upstream 同步失败：需要人工处理"
+          BODY=$(cat <<'EOF'
+          母仓库 HapeLee/legado-with-MD3 的 main 合并进本 fork 时失败（冲突或工作区不干净），已中止，未做任何取舍。
+
+          本地处理：
+
+              git fetch upstream
+              git merge upstream/main     # 解决冲突
+              git push origin main
+
+          再次运行本 workflow 即可继续同步。
+          EOF
+          )
+          BODY="$BODY"$'\n\n最近一次运行：'"${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          NUMBER=$(gh issue list --state open --search "$TITLE in:title" --json number --jq '.[0].number // empty' || true)
+          if [ -n "$NUMBER" ]; then
+            gh issue comment "$NUMBER" --body "$BODY"
+          else
+            gh issue create --title "$TITLE" --body "$BODY"
+          fi
