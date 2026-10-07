@@ -157,8 +157,23 @@ jobs:
         run: |
           echo "清空18PlusList.txt"
           echo "">$GITHUB_WORKSPACE/app/src/main/assets/18PlusList.txt
+      # fork 也能签 release：以 secrets 是否存在为准，而不是写死上游 owner。
+      # GitHub 不允许在 if 里直接读 secrets，所以先探测再决定。
+      - name: Detect signing secrets
+        id: sign_secrets
+        shell: bash
+        env:
+          SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
+        run: |
+          if [ -n "$SIGNING_KEY" ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::未配置 SIGNING_KEY/KEYSTORE_PASSWORD/KEY_ALIAS/KEY_PASSWORD，release 产物将是未签名 APK，无法直接安装"
+          fi
+
       - name: Release Apk Sign
-        if: ${{ github.actor == 'HapeLee' }}
+        if: steps.sign_secrets.outputs.enabled == 'true'
         shell: bash
         run: |
           echo "${{ secrets.SIGNING_KEY }}" | base64 -d >"$GITHUB_WORKSPACE/app/my-release-key.jks"

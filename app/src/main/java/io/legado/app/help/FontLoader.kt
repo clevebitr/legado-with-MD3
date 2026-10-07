@@ -12,6 +12,20 @@ import java.io.File
 private val fontFileRegex = Regex("(?i).*\\.[ot]tf")
 
 /**
+ * 纯文件目录扫描：按 [fontFileRegex] 过滤目录下的字体文件。
+ *
+ * 不依赖 Android 类型，便于在 JVM 单测中验证自带文件夹选择器的核心行为
+ * （返回的是 file:// 路径而不是 SAF 的 content:// tree URI）。
+ * 路径不存在或不是目录时返回 null，调用方据此标记为不可访问。
+ */
+internal fun listFontFilesInDir(dir: File): List<File>? =
+    if (dir.isDirectory) {
+        dir.listFiles()?.filter { it.isFile && it.name.matches(fontFileRegex) }
+    } else {
+        null
+    }
+
+/**
  * 字体扫描结果。
  *
  * @param fontFiles 可用字体：配置的字体文件夹 + 应用私有字体目录，按文件名去重
@@ -57,7 +71,7 @@ fun scanFontFiles(context: Context, folderUri: Uri?): FontScanResult {
                 ?.listFileDocs { it.name.matches(fontFileRegex) }
         } else {
             val file = File(folderUri.path ?: folderUri.toString())
-            if (file.exists()) file.listFileDocs { it.name.matches(fontFileRegex) } else null
+            listFontFilesInDir(file)?.map { FileDoc.fromFile(it) }
         }
     } catch (e: Exception) {
         AppLog.put("读取字体文件夹失败, 已回落到应用字体目录: $folderUri", e)
