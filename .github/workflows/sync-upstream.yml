@@ -53,8 +53,10 @@ jobs:
           echo "本地 main: $BEFORE"
           echo "母仓库 main: $UPSTREAM"
 
-          if [ "$BEFORE" = "$UPSTREAM" ]; then
-            echo "main 已与母仓库一致，无需同步"
+          # 注意：fork 的常态就是“本地领先母仓库”，所以不能用 BEFORE != UPSTREAM 判断，
+          # 必须看合并后 HEAD 是否真的变了。
+          if git merge-base --is-ancestor "$UPSTREAM" "$BEFORE"; then
+            echo "main 已包含母仓库 main（$UPSTREAM），无需同步"
             echo "changed=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
@@ -66,7 +68,12 @@ jobs:
             exit 1
           fi
 
-          echo "changed=true" >> "$GITHUB_OUTPUT"
+          AFTER=$(git rev-parse HEAD)
+          if [ "$AFTER" = "$BEFORE" ]; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
           git --no-pager log --oneline -1
 
       - name: 推送 main
