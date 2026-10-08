@@ -399,6 +399,7 @@
     <string name="fonts_folder">請將字體文件放到 SD 根目錄 Fonts 文件夾下重新選擇</string>
     <string name="font_folder_not_accessible">無法讀取已選的字體文件夾（系統文件選擇器可能未授予持久權限），已改為顯示應用內字體；請重新選擇文件夾</string>
     <string name="folder_permission_not_persistable">該系統文件選擇器未授予持久訪問權限，重啟應用後可能失效；建議把字體放進應用字體目錄</string>
+    <string name="font_folder_empty_hint">已選的字體文件夾內找不到 .ttf/.otf 字體。若字體已放好仍未顯示，請按右上角改用「自帶文件夾選擇器」</string>
     <string name="default_font">默認字體</string>
     <string name="select_font">選擇字體</string>
     <string name="text_size">字號</string>

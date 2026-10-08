@@ -363,6 +363,7 @@ fun ReadBookScreen(
         onSelectFont = { onIntent(ReadBookIntent.SelectFont(it.uri.toString())) },
         onSelectSystemTypeface = { onIntent(ReadBookIntent.SelectSystemTypeface(it)) },
         onOpenFolderPicker = { onIntent(ReadBookIntent.OpenFontFolderPicker) },
+        onSelectFontFolder = { onIntent(ReadBookIntent.FontFolderSelected(it)) },
         systemTypefaces = fontSelectSystemTypefaces,
     )
     FontSelectSheet(
@@ -374,6 +375,7 @@ fun ReadBookScreen(
         onSelectFont = { onIntent(ReadBookIntent.SelectTitleFont(it.uri.toString())) },
         onSelectSystemTypeface = { onIntent(ReadBookIntent.SelectTitleSystemTypeface(it)) },
         onOpenFolderPicker = { onIntent(ReadBookIntent.OpenFontFolderPicker) },
+        onSelectFontFolder = { onIntent(ReadBookIntent.FontFolderSelected(it)) },
         systemTypefaces = fontSelectSystemTypefaces,
     )
     ToolButtonConfigSheet(

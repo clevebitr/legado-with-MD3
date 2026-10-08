@@ -874,6 +874,9 @@ fun HighlightRuleEditSheet(
         onSelectFont = { fontPath = it.uri.toString(); showFontSelect = false },
         onSelectSystemTypeface = { fontPath = ""; showFontSelect = false },
         onOpenFolderPicker = { fontFolderLauncher.launch(null) },
+        onSelectFontFolder = { uri ->
+            fontSelectScope.launch { readSettingsRepository.setFontFolder(uri.toString()) }
+        },
         systemTypefaces = systemTypefaces,
     )
 }

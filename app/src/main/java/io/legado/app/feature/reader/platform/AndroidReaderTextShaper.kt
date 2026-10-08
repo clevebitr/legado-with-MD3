@@ -54,6 +54,11 @@ object ReaderAndroidPaintFactory {
                     appCtx.contentResolver.openFileDescriptor(path.toUri(), "r")?.use {
                         Typeface.Builder(it.fileDescriptor).build()
                     }
+                // 自带文件夹选择器与 FileDoc 给出的是 file:// URI；必须先取 path 再交给 File，
+                // 否则会当成不存在的相对路径，选中字体后静默回落到默认字体。
+                path.startsWith("file://", ignoreCase = true) ->
+                    path.toUri().path?.let { File(it).takeIf(File::isFile) }
+                        ?.let { Typeface.Builder(it).build() }
                 path.isNotBlank() && File(path).isFile -> Typeface.Builder(File(path)).build()
                 else -> null
             }

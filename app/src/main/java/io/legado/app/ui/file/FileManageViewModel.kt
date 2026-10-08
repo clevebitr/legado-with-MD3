@@ -8,11 +8,21 @@ import java.io.File
 
 class FileManageViewModel(application: Application) : BaseViewModel(application) {
 
-    val rootDoc = context.getExternalFilesDir(null)?.parentFile
+    var rootDoc: File? = context.getExternalFilesDir(null)?.parentFile
+
     var subDocs = mutableListOf<File>()
     val filesLiveData = MutableLiveData<List<File>>()
 
     val lastDir: File? get() = subDocs.lastOrNull() ?: rootDoc
+
+    /**
+     * 切换浏览根目录（如内置字体文件夹选择器把根设在共享存储）。
+     * 必须在首次 [upFiles] 之前调用，否则会带着旧路径的 [subDocs]。
+     */
+    fun setRootDir(root: File?) {
+        rootDoc = root
+        subDocs.clear()
+    }
 
     fun upFiles(parentFile: File?) {
         execute {

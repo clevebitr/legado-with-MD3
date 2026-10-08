@@ -221,17 +221,32 @@ fun FontSelectGrid(
                 CircularProgressIndicator()
             }
         } else if (filteredItems.isEmpty()) {
+            val configuredFolderUri = (folderState as? FontFolderState.Loaded)?.uri
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(fontGridHeight),
                 contentAlignment = Alignment.Center,
             ) {
-                Text(
-                    text = emptyText ?: stringResource(R.string.empty),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = emptyText ?: stringResource(R.string.empty),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    // 部分国产 ROM 的系统选择器会返回列不出子项的 tree URI（手机可用、平板不可用），
+                    // 此时既不报错也没有字体。提示改用自带文件夹选择器，否则用户只能看到空列表。
+                    if (configuredFolderUri != null && folderAccessible && searchQuery.isBlank()) {
+                        Spacer(Modifier.height(6.dp))
+                        Text(
+                            text = stringResource(R.string.font_folder_empty_hint),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.error,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.padding(horizontal = 8.dp),
+                        )
+                    }
+                }
             }
         } else {
             LazyVerticalGrid(

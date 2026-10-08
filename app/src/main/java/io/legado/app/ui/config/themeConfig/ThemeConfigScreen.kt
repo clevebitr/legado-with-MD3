@@ -930,6 +930,7 @@ fun ThemeConfigScreen(
         onDismissRequest = { onIntent(ThemeConfigIntent.DismissSheet) },
         onSelectFont = { onIntent(ThemeConfigIntent.SelectAppFont(it)) },
         onOpenFolderPicker = { onIntent(ThemeConfigIntent.RequestFontFolder) },
+        onSelectFontFolder = { onIntent(ThemeConfigIntent.SetFontFolder(it.toString())) },
         startAction = {
             MediumTonalButton(
                 icon = Icons.Default.Delete,

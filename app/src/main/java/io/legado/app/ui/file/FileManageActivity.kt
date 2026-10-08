@@ -1,7 +1,10 @@
 package io.legado.app.ui.file
 
 import android.annotation.SuppressLint
+import android.content.Intent
 import android.os.Bundle
+import android.view.Menu
+import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.PopupMenu
@@ -48,7 +51,39 @@ class FileManageActivity : VMBaseActivity<ActivityFileManageBinding, FileManageV
         super.onCreate(savedInstanceState)
         initView()
         initSearchView()
+        if (isSelectFolderMode) {
+            intent.getStringExtra(EXTRA_START_DIR)?.let { viewModel.setRootDir(File(it)) }
+            binding.titleBar.title = getString(R.string.select_folder)
+        }
         viewModel.upFiles(viewModel.rootDoc)
+    }
+
+    private val isSelectFolderMode: Boolean
+        get() = intent.getBooleanExtra(EXTRA_SELECT_FOLDER, false)
+
+    /**
+     * 内置文件夹选择器：确认按钮必须走 BaseActivity 的菜单钩子。
+     * 直接改 `titleBar.menu` 会被 `setSupportActionBar` / `onCreateOptionsMenu` 覆盖，按钮不会出现。
+     */
+    override fun onCompatCreateOptionsMenu(menu: Menu): Boolean {
+        if (isSelectFolderMode) {
+            menu.add(0, MENU_ID_CONFIRM, 0, R.string.ok)
+                .setIcon(R.drawable.ic_check)
+                .setShowAsAction(
+                    MenuItem.SHOW_AS_ACTION_ALWAYS or MenuItem.SHOW_AS_ACTION_WITH_TEXT
+                )
+        }
+        return super.onCompatCreateOptionsMenu(menu)
+    }
+
+    override fun onCompatOptionsItemSelected(item: MenuItem): Boolean {
+        if (isSelectFolderMode && item.itemId == MENU_ID_CONFIRM) {
+            val dir = viewModel.lastDir ?: return true
+            setResult(RESULT_OK, Intent().putExtra(EXTRA_RESULT_FOLDER, dir.absolutePath))
+            finish()
+            return true
+        }
+        return super.onCompatOptionsItemSelected(item)
     }
 
     private fun initView() {
@@ -227,6 +262,13 @@ class FileManageActivity : VMBaseActivity<ActivityFileManageBinding, FileManageV
             popupMenu.show()
         }
 
+    }
+
+    companion object {
+        const val EXTRA_SELECT_FOLDER = "selectFolder"
+        const val EXTRA_START_DIR = "startDir"
+        const val EXTRA_RESULT_FOLDER = "resultFolder"
+        private const val MENU_ID_CONFIRM = 1
     }
 
 }
