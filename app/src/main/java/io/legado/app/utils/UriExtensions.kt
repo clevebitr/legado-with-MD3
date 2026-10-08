@@ -5,6 +5,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.ParcelFileDescriptor
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.documentfile.provider.DocumentFile
 import androidx.fragment.app.Fragment
@@ -69,6 +70,28 @@ fun Uri.takePersistablePermissionSafely(
         }.onFailure {
             AppLog.put("持久化写入权限失败: $this", it)
         }
+    }
+    return granted
+}
+
+/**
+ * 文件夹（字体目录、书籍目录等）选择完成后的持久化授权。
+ *
+ * 授权失败意味着这个 URI 只在本次进程内可用，重启后读取会抛 SecurityException。
+ * 部分国产 ROM 的文件选择器（ColorOS / HyperOS 等）就是不给持久授权，所以这里
+ * 明确提示用户，调用方也可以根据返回值决定要不要保存该 URI。
+ */
+fun Uri.persistFolderPermissionOrNotify(
+    context: Context,
+    modeFlags: Int = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+): Boolean {
+    val granted = takePersistablePermissionSafely(context, modeFlags)
+    if (!granted) {
+        Toast.makeText(
+            context,
+            context.getString(R.string.folder_permission_not_persistable),
+            Toast.LENGTH_LONG
+        ).show()
     }
     return granted
 }

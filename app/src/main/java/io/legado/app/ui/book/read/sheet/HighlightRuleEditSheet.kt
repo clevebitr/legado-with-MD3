@@ -84,6 +84,7 @@ import io.legado.app.ui.widget.components.settingItem.TinySwitchSettingItem
 import io.legado.app.ui.widget.components.text.AppText
 import io.legado.app.utils.dpToPx
 import io.legado.app.utils.spToPx
+import io.legado.app.utils.persistFolderPermissionOrNotify
 import io.legado.app.utils.toastOnUi
 import java.io.File
 import kotlin.math.abs
@@ -858,9 +859,7 @@ fun HighlightRuleEditSheet(
         ActivityResultContracts.OpenDocumentTree()
     ) { uri ->
         uri?.let {
-            context.contentResolver.takePersistableUriPermission(
-                it, Intent.FLAG_GRANT_READ_URI_PERMISSION
-            )
+            it.persistFolderPermissionOrNotify(context, Intent.FLAG_GRANT_READ_URI_PERMISSION)
             fontSelectScope.launch {
                 readSettingsRepository.setFontFolder(it.toString())
             }

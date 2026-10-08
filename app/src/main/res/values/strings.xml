@@ -488,6 +488,8 @@
     <string name="nb_file_add_shelves">Add to Bookshelf(%1$d)</string>
     <string name="nb_file_add_succeed">%1$d books added successfully</string>
     <string name="fonts_folder">Please put the font files in the Fonts folder of the storage root directory and reselect</string>
+    <string name="font_folder_not_accessible">The selected font folder cannot be read (the system file picker may not grant persistent access). Fonts inside the app are shown instead; please select the folder again.</string>
+    <string name="folder_permission_not_persistable">This system file picker did not grant persistent access, so the selection may be lost after restarting the app. Putting the font into the app font folder is recommended.</string>
     <string name="default_font">Default font</string>
     <string name="select_font">Select fonts</string>
     <string name="text_size">Text size</string>

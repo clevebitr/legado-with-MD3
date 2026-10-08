@@ -49,7 +49,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.legado.app.R
 import io.legado.app.domain.gateway.OtherSettingsGateway
-import io.legado.app.help.loadFontFiles
+import io.legado.app.help.scanFontFiles
 import io.legado.app.ui.theme.LegadoTheme
 import io.legado.app.ui.theme.ProvideAppDensity
 import io.legado.app.utils.FileDoc
@@ -105,6 +105,7 @@ fun FontSelectGrid(
     val scope = rememberCoroutineScope()
     var fontItems by remember { mutableStateOf<List<FileDoc>>(emptyList()) }
     var filesLoading by remember { mutableStateOf(false) }
+    var folderAccessible by remember { mutableStateOf(true) }
     var searchQuery by remember { mutableStateOf("") }
     val fontSortFlow = remember(otherSettings) {
         otherSettings.settings.map { it.fontSort }.distinctUntilChanged()
@@ -117,9 +118,11 @@ fun FontSelectGrid(
         if (folderState is FontFolderState.Loaded) {
             filesLoading = true
             try {
-                fontItems = withContext(Dispatchers.IO) {
-                    loadFontFiles(context, folderState.uri)
+                val result = withContext(Dispatchers.IO) {
+                    scanFontFiles(context, folderState.uri)
                 }
+                fontItems = result.fontFiles
+                folderAccessible = result.folderAccessible
             } finally {
                 filesLoading = false
             }
@@ -195,6 +198,17 @@ fun FontSelectGrid(
         )
 
         Spacer(Modifier.height(4.dp))
+
+        if (!folderAccessible) {
+            Text(
+                text = stringResource(R.string.font_folder_not_accessible),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.error,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 4.dp, vertical = 2.dp),
+            )
+        }
 
         // Font grid
         if (showLoading) {

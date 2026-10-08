@@ -399,6 +399,8 @@
     <string name="nb_file_add_shelves">加入書架(%1$d)</string>
     <string name="nb_file_add_succeed">成功新增%1$d本書</string>
     <string name="fonts_folder">請將字體檔案放到SD根目錄Fonts資料夾下重新選擇</string>
+    <string name="font_folder_not_accessible">無法讀取已選的字體資料夾（系統檔案選擇器可能未授予持久權限），已改為顯示應用內字體；請重新選擇資料夾</string>
+    <string name="folder_permission_not_persistable">該系統檔案選擇器未授予持久存取權限，重新啟動應用後可能失效；建議把字體放進應用字體目錄</string>
     <string name="default_font">預設字體</string>
     <string name="select_font">選擇字體</string>
     <string name="text_size">字號</string>

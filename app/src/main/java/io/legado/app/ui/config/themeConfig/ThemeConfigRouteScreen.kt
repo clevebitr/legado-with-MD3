@@ -16,7 +16,7 @@ import io.legado.app.help.LauncherIconHelp
 import io.legado.app.help.config.ThemeConfigStore
 import io.legado.app.utils.MD5Utils
 import io.legado.app.utils.postEvent
-import io.legado.app.utils.takePersistablePermissionSafely
+import io.legado.app.utils.persistFolderPermissionOrNotify
 import io.legado.app.utils.toastOnUi
 import kotlinx.coroutines.flow.collectLatest
 import org.koin.androidx.compose.koinViewModel
@@ -39,7 +39,7 @@ fun ThemeConfigRouteScreen(
         ActivityResultContracts.OpenDocumentTree()
     ) { uri ->
         if (uri != null) {
-            uri.takePersistablePermissionSafely(context, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            uri.persistFolderPermissionOrNotify(context, Intent.FLAG_GRANT_READ_URI_PERMISSION)
             viewModel.onIntent(ThemeConfigIntent.SetFontFolder(uri.toString()))
         }
     }

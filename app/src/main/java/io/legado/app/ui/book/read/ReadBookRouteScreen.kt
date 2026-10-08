@@ -97,7 +97,8 @@ import io.legado.app.ui.replace.ReplaceEditRoute
 import io.legado.app.ui.theme.LegadoTheme
 import io.legado.app.ui.theme.LocalAppUiConfiguration
 import io.legado.app.ui.widget.components.text.AppText
-import io.legado.app.utils.takePersistablePermissionSafely
+import io.legado.app.utils.StartActivityContract
+import io.legado.app.utils.persistFolderPermissionOrNotify
 import io.legado.app.utils.toastOnUi
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
@@ -274,7 +275,7 @@ fun ReadBookRouteScreen(
         ActivityResultContracts.OpenDocumentTree()
     ) { uri ->
         uri?.let {
-            it.takePersistablePermissionSafely(context)
+            it.persistFolderPermissionOrNotify(context)
             viewModel.onIntent(ReadBookIntent.FontFolderSelected(it))
         }
     }
@@ -283,7 +284,7 @@ fun ReadBookRouteScreen(
         ActivityResultContracts.OpenDocumentTree()
     ) { uri ->
         uri?.let {
-            it.takePersistablePermissionSafely(context)
+            it.persistFolderPermissionOrNotify(context)
             viewModel.onIntent(ReadBookIntent.BooksDirSelected(it))
         }
     }
