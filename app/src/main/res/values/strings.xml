@@ -2679,6 +2679,12 @@
     <string name="reading_anchor_summary">Show a floating button to return to the original reading position after jumping chapters twice or more</string>
     <string name="read_aloud_detach_reminder">Read-aloud detach reminder</string>
     <string name="read_aloud_detach_reminder_summary">When enabled, shows a button to return to the speaking position after the page leaves it; when disabled, read-aloud follows manual page turns</string>
+    <string name="read_aloud_keep_following_on_manual_turn">Keep read-aloud on manual page turns</string>
+    <string name="read_aloud_keep_following_on_manual_turn_summary">When enabled, manually turning pages or scrolling keeps the read-aloud playing: the page stays where you turned it, and jumps back to the speaking position once reading reaches the next page. When disabled, the “read-aloud detach reminder” setting decides.</string>
+    <string name="read_aloud_group_playback">Playback</string>
+    <string name="read_aloud_group_follow">Speaking position</string>
+    <string name="read_aloud_group_capsule">Floating capsule</string>
+    <string name="read_aloud_group_media_control">Media controls</string>
     <string name="switch_to_dark_mode_tip">Ambient light is low. Switch to dark mode?</string>
     <string name="switch_to_light_mode_tip">Ambient light is bright. Switch to light mode?</string>
     <string name="switch_to_dark_mode_action">Switch to dark mode</string>

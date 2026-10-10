@@ -2499,6 +2499,12 @@
     <string name="reading_anchor_summary">跳轉章節兩次或以上後，顯示返回原閱讀位置的懸浮按鈕</string>
     <string name="read_aloud_detach_reminder">朗讀脫離提示</string>
     <string name="read_aloud_detach_reminder_summary">開啟時朗讀位置離開目前頁面會顯示「回到朗讀位置」懸浮按鈕；關閉時手動翻頁後朗讀跟隨新頁面</string>
+    <string name="read_aloud_keep_following_on_manual_turn">翻頁不打斷朗讀</string>
+    <string name="read_aloud_keep_following_on_manual_turn_summary">開啟後朗讀中手動翻頁/捲動不停朗讀：頁面停在翻到的位置，朗讀推進到下一頁時自動跳回朗讀位置；關閉時由「朗讀脫離提示」決定手動翻頁後的行為</string>
+    <string name="read_aloud_group_playback">播放設定</string>
+    <string name="read_aloud_group_follow">朗讀跟隨</string>
+    <string name="read_aloud_group_capsule">懸浮膠囊</string>
+    <string name="read_aloud_group_media_control">媒體控制</string>
     <string name="switch_to_dark_mode_tip">目前環境光較暗，是否切換至深色模式？</string>
     <string name="switch_to_light_mode_tip">目前環境光較亮，是否切換至淺色模式？</string>
     <string name="switch_to_dark_mode_action">切換至深色模式</string>

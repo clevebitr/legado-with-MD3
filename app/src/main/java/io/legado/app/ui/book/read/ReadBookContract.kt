@@ -249,6 +249,8 @@ data class ReadBookUiState(
     val readAloudFollow: Boolean = true,
     /** 朗读位置脱离当前页时的悬浮提示开关；关闭时手动翻页朗读跟随新页面。 */
     val readAloudDetachReminderEnabled: Boolean = false,
+    /** 手动翻页/滚动不打断朗读：页面停在用户位置，朗读推进到下一页时自动跳回朗读位置。 */
+    val readAloudKeepFollowingOnManualTurn: Boolean = false,
     val readAloudEngineName: String = "",
     val readAloudCharacterName: String = "",
     val readAloudRoleType: SpeechRoleType = SpeechRoleType.Narrator,
@@ -1898,6 +1900,9 @@ sealed interface ConfigUpdate {
         override val actions = emptySet<ConfigUpdateAction>()
     }
     data class ReadAloudDetachReminderEnabled(val value: Boolean) : ConfigUpdate {
+        override val actions = emptySet<ConfigUpdateAction>()
+    }
+    data class ReadAloudKeepFollowingOnManualTurn(val value: Boolean) : ConfigUpdate {
         override val actions = emptySet<ConfigUpdateAction>()
     }
     data class SelectText(val value: Boolean) : ConfigUpdate {

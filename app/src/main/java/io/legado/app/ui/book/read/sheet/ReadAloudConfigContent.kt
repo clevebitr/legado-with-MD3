@@ -26,10 +26,12 @@ import io.legado.app.domain.model.readaloud.ReadAloudContentSplitSetting
 import io.legado.app.domain.model.readaloud.ReadAloudSplitSymbol
 import io.legado.app.domain.model.settings.ReadAloudContentSplitMode
 import io.legado.app.feature.readaloud.overlay.ReadAloudOverlayPermissionRoute
+import io.legado.app.ui.book.read.ConfigUpdate
 import io.legado.app.ui.book.read.ReadBookIntent
 import io.legado.app.ui.book.read.ReadBookUiState
 import io.legado.app.ui.book.readaloud.player.ReadAloudPlayerIntent
 import io.legado.app.ui.book.readaloud.player.ReadAloudPlayerUiState
+import io.legado.app.ui.widget.components.SectionTitle
 import io.legado.app.ui.widget.components.modalBottomSheet.AppModalBottomSheet
 import io.legado.app.ui.widget.components.settingItem.SliderSettingItem
 import io.legado.app.ui.widget.components.settingItem.TinyClickableSettingItem
@@ -103,6 +105,7 @@ fun ReadAloudConfigContent(
                     .padding(top = 8.dp, bottom = 16.dp),
             ) {
                 if (page == 0) {
+                    SectionTitle(stringResource(R.string.read_aloud_group_playback))
                     TinyDropdownSettingItem(
                         title = stringResource(R.string.default_read_aloud_interface),
                         selectedValue = state.defaultReadAloudInterface,
@@ -131,25 +134,6 @@ fun ReadAloudConfigContent(
                         ),
                         onValueChange = { onPlayerIntent(ReadAloudPlayerIntent.SetBgMode(it.toInt())) },
                     )
-                    TinySwitchSettingItem(
-                        title = stringResource(R.string.show_read_aloud_capsule),
-                        description = stringResource(R.string.show_read_aloud_capsule_summary),
-                        checked = state.showReadAloudCapsule,
-                        onCheckedChange = {
-                            onIntent(ReadBookIntent.SetShowReadAloudCapsule(it))
-                        },
-                    )
-                    if (state.showReadAloudCapsule) {
-                        ReadAloudOverlayPermissionRoute()
-                        TinySwitchSettingItem(
-                            title = stringResource(R.string.capsule_auto_collapse),
-                            description = stringResource(R.string.capsule_auto_collapse_summary),
-                            checked = state.capsuleAutoCollapse,
-                            onCheckedChange = {
-                                onIntent(ReadBookIntent.SetCapsuleAutoCollapse(it))
-                            },
-                        )
-                    }
                     TinySwitchSettingItem(
                         title = stringResource(R.string.ignore_audio_focus_title),
                         description = stringResource(R.string.ignore_audio_focus_summary),
@@ -184,6 +168,53 @@ fun ReadAloudConfigContent(
                         },
                     )
                     TinySwitchSettingItem(
+                        title = stringResource(R.string.stream_read_aloud_audio),
+                        description = stringResource(R.string.stream_read_aloud_audio_summary),
+                        checked = state.readAloudStreamAudio,
+                        onCheckedChange = {
+                            onIntent(ReadBookIntent.SetReadAloudStreamAudio(it))
+                        },
+                    )
+                    SectionTitle(stringResource(R.string.read_aloud_group_follow))
+                    TinySwitchSettingItem(
+                        title = stringResource(R.string.read_aloud_keep_following_on_manual_turn),
+                        description = stringResource(R.string.read_aloud_keep_following_on_manual_turn_summary),
+                        checked = state.readAloudKeepFollowingOnManualTurn,
+                        onCheckedChange = {
+                            onIntent(
+                                ReadBookIntent.UpdateConfig(
+                                    ConfigUpdate.ReadAloudKeepFollowingOnManualTurn(it)
+                                )
+                            )
+                        },
+                    )
+                    SectionTitle(stringResource(R.string.read_aloud_group_capsule))
+                    TinySwitchSettingItem(
+                        title = stringResource(R.string.show_read_aloud_capsule),
+                        description = stringResource(R.string.show_read_aloud_capsule_summary),
+                        checked = state.showReadAloudCapsule,
+                        onCheckedChange = {
+                            onIntent(ReadBookIntent.SetShowReadAloudCapsule(it))
+                        },
+                    )
+                    if (state.showReadAloudCapsule) {
+                        ReadAloudOverlayPermissionRoute()
+                        TinySwitchSettingItem(
+                            title = stringResource(R.string.capsule_auto_collapse),
+                            description = stringResource(R.string.capsule_auto_collapse_summary),
+                            checked = state.capsuleAutoCollapse,
+                            onCheckedChange = {
+                                onIntent(ReadBookIntent.SetCapsuleAutoCollapse(it))
+                            },
+                        )
+                    }
+                    TinyClickableSettingItem(
+                        title = stringResource(R.string.reset_read_aloud_capsule_position),
+                        description = stringResource(R.string.reset_read_aloud_capsule_position_summary),
+                        onClick = { onIntent(ReadBookIntent.ResetReadAloudCapsulePosition) },
+                    )
+                    SectionTitle(stringResource(R.string.read_aloud_group_media_control))
+                    TinySwitchSettingItem(
                         title = stringResource(R.string.pref_media_button_per_next),
                         description = stringResource(R.string.pref_media_button_per_next_summary),
                         checked = state.readAloudMediaButtonPerNext,
@@ -206,19 +237,6 @@ fun ReadAloudConfigContent(
                         onCheckedChange = {
                             onIntent(ReadBookIntent.SetReadAloudSystemMediaCompat(it))
                         },
-                    )
-                    TinySwitchSettingItem(
-                        title = stringResource(R.string.stream_read_aloud_audio),
-                        description = stringResource(R.string.stream_read_aloud_audio_summary),
-                        checked = state.readAloudStreamAudio,
-                        onCheckedChange = {
-                            onIntent(ReadBookIntent.SetReadAloudStreamAudio(it))
-                        },
-                    )
-                    TinyClickableSettingItem(
-                        title = stringResource(R.string.reset_read_aloud_capsule_position),
-                        description = stringResource(R.string.reset_read_aloud_capsule_position_summary),
-                        onClick = { onIntent(ReadBookIntent.ResetReadAloudCapsulePosition) },
                     )
                 } else {
                     TinyClickableSettingItem(

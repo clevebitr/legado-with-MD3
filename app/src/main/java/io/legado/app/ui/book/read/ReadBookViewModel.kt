@@ -2088,6 +2088,7 @@ class ReadBookViewModel(
             isLocalBook = ReadBook.isLocalBook,
             msg = ReadBook.msg,
             readAloudDetachReminderEnabled = ReadBookConfig.readAloudDetachReminderEnabled,
+            readAloudKeepFollowingOnManualTurn = ReadBookConfig.readAloudKeepFollowingOnManualTurn,
             replaceRuleEnabled = book?.getUseReplaceRule(
                 otherSettingsGateway.currentSettings.replaceEnableDefault
             ) ?: false,

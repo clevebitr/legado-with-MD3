@@ -698,6 +698,11 @@ class ReadConfigUpdateDelegate(
                     readSettingsRepository.setReadAloudDetachReminderEnabled(update.value)
                 }
             }
+            is ConfigUpdate.ReadAloudKeepFollowingOnManualTurn -> {
+                scope.launch {
+                    readSettingsRepository.setReadAloudKeepFollowingOnManualTurn(update.value)
+                }
+            }
             is ConfigUpdate.SelectText -> {
                 scope.launch {
                     readSettingsRepository.setSelectText(update.value)
