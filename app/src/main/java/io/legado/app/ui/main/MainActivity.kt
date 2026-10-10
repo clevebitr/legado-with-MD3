@@ -12,6 +12,8 @@ import android.view.MotionEvent
 import androidx.activity.compose.BackHandler
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -690,14 +692,21 @@ open class MainActivity : BaseComposeActivity(), AudioPlay.CallBack {
                                 ) + fadeOut(animationSpec = tween(durationMillis = NAV_FADE_DURATION_MILLIS)))
                             },
                             predictivePopTransitionSpec = { _ ->
-                                (slideIntoContainer(
-                                    towards = AnimatedContentTransitionScope.SlideDirection.Start,
-                                    animationSpec = tween(easing = FastOutSlowInEasing),
-                                    initialOffset = { fullWidth -> -fullWidth / 4 }
-                                ) + fadeIn(animationSpec = tween(easing = LinearOutSlowInEasing))) togetherWith (scaleOut(
-                                    targetScale = 0.8f,
-                                    animationSpec = tween(easing = FastOutSlowInEasing)
-                                ) + fadeOut(animationSpec = tween()))
+                                if (!predictiveBackEnabled) {
+                                    // 关闭预见性返回：显式给出无动画转场。不能靠"不设置 key"——nav3 在
+                                    // per-entry spec 为 null 时会回落到本层 spec（NavDisplay.kt
+                                    // `predictivePopSpec() ?: predictivePopTransitionSpec(...)`）。
+                                    EnterTransition.None togetherWith ExitTransition.None
+                                } else {
+                                    (slideIntoContainer(
+                                        towards = AnimatedContentTransitionScope.SlideDirection.Start,
+                                        animationSpec = tween(easing = FastOutSlowInEasing),
+                                        initialOffset = { fullWidth -> -fullWidth / 4 }
+                                    ) + fadeIn(animationSpec = tween(easing = LinearOutSlowInEasing))) togetherWith (scaleOut(
+                                        targetScale = 0.8f,
+                                        animationSpec = tween(easing = FastOutSlowInEasing)
+                                    ) + fadeOut(animationSpec = tween()))
+                                }
                             },
                             onBack = { MainNavigator.navigateBack(this@MainActivity, backStack) },
                             entryProvider = mainEntryProvider(

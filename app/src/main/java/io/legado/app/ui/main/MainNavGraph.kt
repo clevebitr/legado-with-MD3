@@ -953,6 +953,7 @@ fun MainActivity.mainEntryProvider(
                 isTopRoute = (backStack.lastOrNull() as? MainRouteReadBook)?.let {
                     route.bookUrl == null || it.bookUrl == route.bookUrl
                 } ?: false,
+                predictiveBackEnabled = configuration.appShell.predictiveBackEnabled,
                 onEffectsReady = { effectsReady.complete(Unit) },
                 onOpenToc = { bookUrl, page -> onNavigateToRoute(MainRouteToc(bookUrl, page)) },
                 onOpenReplaceRule = { bookUrl, editor ->
