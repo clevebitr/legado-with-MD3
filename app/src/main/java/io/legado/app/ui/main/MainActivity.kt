@@ -608,6 +608,18 @@ open class MainActivity : BaseComposeActivity(), AudioPlay.CallBack {
                     MainNavigator.onBackStackChanged()
                 }
         }
+        // 兜底返回：必须注册在导航宿主**之前**。AndroidX 的返回回调按「后注册先调用」派发，
+        // 这样页面/弹层/覆盖层自己的处理器永远优先，只有没人接的时候才由这里弹一层。
+        // 同时它必须常驻（不按根页面判断）：子页面刚压入、nav3 的处理器尚未启用的空窗里，
+        // 只要没有任何启用的处理器，系统就会把返回当成「应用不处理」而显示预测性返回手势。
+        BackHandler(
+            enabled = shouldHandleActivityBack(
+                predictiveBackEnabled = configuration.appShell.predictiveBackEnabled,
+                playerPresent = playerVisible || morphPresent,
+            )
+        ) {
+            MainNavigator.navigateBack(this@MainActivity, backStack)
+        }
         SharedTransitionLayout {
             // 启动验证做成单独的 screen：门槛未过时完全不组合应用界面，
             // 因此验证页背后看不到书架/阅读界面，也没有可交互的入口
@@ -828,15 +840,6 @@ open class MainActivity : BaseComposeActivity(), AudioPlay.CallBack {
                             )
                         }
                     }
-                }
-                BackHandler(
-                    enabled = shouldHandleActivityBack(
-                        predictiveBackEnabled = configuration.appShell.predictiveBackEnabled,
-                        playerPresent = playerVisible || morphPresent,
-                        isRoot = backStack.size <= 1,
-                    )
-                ) {
-                    MainNavigator.navigateBack(this@MainActivity, backStack)
                 }
             }
         }
