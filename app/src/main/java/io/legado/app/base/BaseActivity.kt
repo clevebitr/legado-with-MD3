@@ -11,7 +11,6 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.MotionEvent
 import android.view.View
-import android.window.OnBackInvokedDispatcher
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.os.LocaleListCompat
@@ -107,20 +106,10 @@ abstract class BaseActivity<VB : ViewBinding>(
         initTheme()
         window.decorView.disableAutoFill()
         AppContextWrapper.applyFont(this)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            val enable = !shellGateway.currentSettings.predictiveBackEnabled
-            if (enable) {
-                onBackInvokedDispatcher.registerOnBackInvokedCallback(
-                    OnBackInvokedDispatcher.PRIORITY_DEFAULT
-                ) {
-                    onBackPressedDispatcher.onBackPressed()
-                }
-            } else {
-                //不注册才是启用
-            }
-        }
 
         super.onCreate(savedInstanceState)
+        // 预测性返回的运行时开关：与 BaseComposeActivity 共用同一实现，这里不再自己注册回调。
+        PredictiveBackHost(this, shellGateway).start()
         lastPlatformConfiguration = Configuration(resources.configuration)
         lastUiConfiguration = appUiConfigurationGateway.currentConfiguration
         WindowCompat.setDecorFitsSystemWindows(window, false)

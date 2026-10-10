@@ -20,11 +20,11 @@ import androidx.compose.ui.semantics.getAllSemanticsNodes
 import androidx.compose.ui.unit.Density
 import io.legado.app.data.repository.CoverAlbumRepository
 import io.legado.app.data.repository.SettingsRepository
+import io.legado.app.domain.model.settings.AppShellSettings
 import io.legado.app.domain.model.settings.AppUiConfiguration
 import io.legado.app.domain.usecase.CoverAlbumUseCase
 import io.legado.app.help.config.AppConfigStore
 import io.legado.app.ui.book.readaloud.morph.ReadAloudMorphState
-import io.legado.app.ui.main.shouldHandleActivityBack
 import io.legado.app.ui.theme.AppTheme
 import io.legado.app.ui.widget.components.text.AppText
 import org.junit.Assert.*
@@ -45,18 +45,73 @@ import java.time.Duration
 @Config(application = Application::class, sdk = [34])
 class PlayerMorphHostInteractionTest {
     @Test
-    fun backClosesTheModalPlayerAndRestoresUnderlaySemanticsWithEitherRegistrationOrder() {
-        // 在同一个 Android 主循环里覆盖两种注册顺序与返回开关，避免 Robolectric
-        // 重置 Choreographer 后复用 Compose 的全局主线程调度器。
-        verifyBack(false, true)
-        verifyBack(false, false)
-        verifyBack(true, true)
-        verifyBack(false, true, initialProgress = 0f)
+    fun backClosesTheModalPlayerBeforeTheCoveredRoute() {
+        // 宿主兜底返回已收敛到 Activity 级的 PredictiveBackHost（关闭预测性返回时拦截并转发给
+        // dispatcher），这里用「路由处理器注册在播放浮层之前」复现真实组合顺序：
+        // 播放浮层后注册，所以浮层优先拿到返回。
+        verifyBack(predictive = false)
+        verifyBack(predictive = true)
+        verifyBack(predictive = false, initialProgress = 0f)
+    }
+
+    /**
+     * 反向顺序：路由处理器后注册就先拿到返回。这不是缺陷而是新契约——宿主不再用 Compose
+     * BackHandler 兜底，优先级由 dispatcher 的「后注册先调用」决定，所以播放浮层必须组合在
+     * 导航宿主之后。这条用例就是钉住这个顺序要求的。
+     */
+    @Test
+    fun coveredRouteWinsBackWhenItRegistersAfterThePlayerOverlay() {
+        val application = RuntimeEnvironment.getApplication()
+        AppConfigStore.init(application)
+        stopKoin()
+        startKoin {
+            modules(module {
+                single {
+                    CoverAlbumUseCase(
+                        CoverAlbumRepository(
+                            application,
+                            SettingsRepository()
+                        )
+                    )
+                }
+            })
+        }
+        val controller = Robolectric.buildActivity(ComponentActivity::class.java).setup().visible()
+        val activity = controller.get()
+        val visible = mutableStateOf(true)
+        val morph = ReadAloudMorphState(Animatable(1f), Density(1f))
+        var routeBacks = 0
+        var dismissals = 0
+        try {
+            activity.setContent {
+                CompositionLocalProvider(LocalInspectionMode provides true) {
+                    AppTheme(
+                        AppUiConfiguration(
+                            appShell = AppShellSettings(predictiveBackEnabled = false),
+                        ),
+                        applyBackground = false,
+                    ) {
+                        PlayerMorphHost(
+                            appearance = PlayerMorphAppearance("Book", "", null, null, 0),
+                            playerTheme = null, morph = morph, visible = visible.value,
+                            awaitCapsuleAnchor = true,
+                            onDismiss = { dismissals++; visible.value = false },
+                        ) { AppText("Player controls") }
+                        BackHandler { routeBacks++ }
+                    }
+                }
+            }
+            activity.onBackPressedDispatcher.onBackPressed()
+            assertEquals("Later-registered route handler wins the back", 1, routeBacks)
+            assertEquals(0, dismissals)
+        } finally {
+            controller.pause().stop().destroy()
+            stopKoin()
+        }
     }
 
     private fun verifyBack(
         predictive: Boolean,
-        activityRegistersLast: Boolean,
         initialProgress: Float = 1f
     ) {
         val application = RuntimeEnvironment.getApplication()
@@ -83,31 +138,26 @@ class PlayerMorphHostInteractionTest {
         try {
             activity.setContent {
                 CompositionLocalProvider(LocalInspectionMode provides true) {
-                    AppTheme(AppUiConfiguration(), applyBackground = false) {
+                    AppTheme(
+                        AppUiConfiguration(
+                            appShell = AppShellSettings(predictiveBackEnabled = predictive),
+                        ),
+                        applyBackground = false,
+                    ) {
                         val present by remember { derivedStateOf { visible || morph.progress.value > 0f } }
-                        val fallback: @Composable () -> Unit = {
-                            BackHandler(
-                                shouldHandleActivityBack(
-                                    predictive,
-                                    present
-                                )
-                            ) { routeBacks++ }
-                        }
                         Box(Modifier.fillMaxSize()) {
                             Box(
                                 Modifier
                                     .fillMaxSize()
                                     .playerUnderlaySemantics(present)
                             ) { AppText("Bookshelf") }
-                            if (!activityRegistersLast) fallback()
+                            BackHandler { routeBacks++ }
                             PlayerMorphHost(
                                 appearance = PlayerMorphAppearance("Book", "", null, null, 0),
                                 playerTheme = null, morph = morph, visible = visible,
                                 awaitCapsuleAnchor = true,
-                                predictiveBackEnabled = predictive,
                                 onDismiss = { dismissals++; visible = false },
                             ) { AppText("Player controls") }
-                            if (activityRegistersLast) fallback()
                         }
                     }
                 }
@@ -165,7 +215,7 @@ class PlayerMorphHostInteractionTest {
             assertTrue(visibleTexts(activity.window.decorView).contains("Bookshelf"))
             assertFalse(visibleTexts(activity.window.decorView).contains("Player controls"))
             activity.onBackPressedDispatcher.onBackPressed()
-            if (!predictive) assertEquals(1, routeBacks)
+            assertEquals(1, routeBacks)
         } finally {
             controller.pause().stop().destroy()
             stopKoin()

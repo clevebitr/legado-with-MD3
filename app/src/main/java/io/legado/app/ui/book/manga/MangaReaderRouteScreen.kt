@@ -47,7 +47,6 @@ fun MangaReaderRouteScreen(
     openRequestId: Long,
     viewModel: MangaReaderViewModel,
     restoreSystemBarsVisible: Boolean,
-    predictiveBackEnabled: Boolean = true,
     sharedTransitionScope: SharedTransitionScope? = null,
     animatedVisibilityScope: AnimatedVisibilityScope? = null,
     sharedCoverKey: String? = null,
@@ -247,7 +246,6 @@ fun MangaReaderRouteScreen(
         anchorKey = sharedCoverKey,
         backgroundColor = Color.Black,
         backEnabled = canMorphBack,
-        predictiveBackEnabled = predictiveBackEnabled,
         onDismiss = dismissManga,
         onBackRequested = { viewModel.onIntent(MangaReaderIntent.BackPressed) },
     ) { onCollapse ->

@@ -45,7 +45,6 @@ fun ReadAloudPlayerMorphHost(
     morph: ReadAloudMorphState,
     visible: Boolean,
     awaitCapsuleAnchor: Boolean = false,
-    predictiveBackEnabled: Boolean = true,
     onDismiss: () -> Unit,
     onSwitchToClassic: (bookUrl: String) -> Unit,
     onOpenTtsEnginesAndVoices: (bookUrl: String) -> Unit,
@@ -186,7 +185,6 @@ fun ReadAloudPlayerMorphHost(
         morph = morph,
         visible = visible,
         awaitCapsuleAnchor = awaitCapsuleAnchor,
-        predictiveBackEnabled = predictiveBackEnabled,
         backEnabled = !configVisible && activeNumberConfig == null &&
                 playerState.activeSheet == null,
         onDismiss = onDismiss,

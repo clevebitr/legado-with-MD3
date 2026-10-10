@@ -30,6 +30,7 @@ import androidx.navigation3.scene.OverlayScene
 import androidx.navigation3.scene.Scene
 import androidx.navigation3.scene.SceneStrategy
 import androidx.navigation3.scene.SceneStrategyScope
+import io.legado.app.ui.theme.LocalAppUiConfiguration
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
@@ -40,7 +41,6 @@ internal const val NAV_FADE_DURATION_MILLIS = 360
 /** Keeps parent destinations composed beneath a Nav3 overlay scene. */
 class ModalOverlaySceneStrategy(
     private val isTopEntry: (Any) -> Boolean = { true },
-    private val predictiveBackEnabled: () -> Boolean = { true },
 ) : SceneStrategy<NavKey> {
     private val searchAnimations = SearchOverlayAnimations()
 
@@ -69,7 +69,6 @@ class ModalOverlaySceneStrategy(
                 animations = pageSlideAnimations,
                 onBack = pageBack,
                 isTopEntry = isTopEntry,
-                predictiveBackEnabled = predictiveBackEnabled,
             )
         }
         return ModalOverlayScene(
@@ -116,7 +115,6 @@ private data class PageSlideOverlayScene(
     private val animations: SearchOverlayAnimations,
     private val onBack: () -> Unit,
     private val isTopEntry: (Any) -> Boolean,
-    private val predictiveBackEnabled: () -> Boolean,
 ) : OverlayScene<NavKey> {
     override val key: Any = entry.contentKey
     override val entries: List<NavEntry<NavKey>> = listOf(entry)
@@ -125,11 +123,14 @@ private data class PageSlideOverlayScene(
     private val animation = animations.state(key, previousEntries.last().contentKey)
 
     override val content: @Composable () -> Unit = {
+        // 预测性返回开关从全局配置读：场景策略不再持有回调，避免宿主逐处透传。
+        val predictiveBackEnabled =
+            LocalAppUiConfiguration.current.appShell.predictiveBackEnabled
         val backScope = rememberCoroutineScope()
         PredictiveBackHandler(enabled = isTopEntry(entry.contentKey)) { events ->
             try {
                 events.collect { event ->
-                    if (predictiveBackEnabled()) animation.previewBack(event.progress)
+                    if (predictiveBackEnabled) animation.previewBack(event.progress)
                 }
                 onBack()
             } catch (cancelled: CancellationException) {

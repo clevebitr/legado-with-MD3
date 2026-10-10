@@ -59,6 +59,7 @@ import io.legado.app.ui.book.readaloud.morph.computeMorphFlyingCoverAlpha
 import io.legado.app.ui.book.readaloud.morph.computeMorphPanelAlpha
 import io.legado.app.ui.book.readaloud.morph.computePredictiveMorphProgress
 import io.legado.app.ui.theme.LegadoTheme
+import io.legado.app.ui.theme.LocalAppUiConfiguration
 import io.legado.app.ui.theme.ProvideThemeOverride
 import io.legado.app.ui.theme.ThemeOverrideState
 import io.legado.app.ui.widget.components.image.cover.BookCoverImage
@@ -104,12 +105,13 @@ fun PlayerMorphHost(
     visible: Boolean,
     awaitCapsuleAnchor: Boolean = false,
     backEnabled: Boolean = true,
-    predictiveBackEnabled: Boolean = true,
     verticalDragEnabled: Boolean = true,
     onBeforeCollapse: (() -> Unit)? = null,
     onDismiss: () -> Unit,
     content: @Composable (onCollapse: () -> Unit) -> Unit,
 ) {
+    // 预测性返回开关只在这里读一次：调用方不再逐个透传，新增宿主自动受控。
+    val predictiveBackEnabled = LocalAppUiConfiguration.current.appShell.predictiveBackEnabled
     val view = LocalView.current
     val scope = rememberCoroutineScope()
     val currentVisible by rememberUpdatedState(visible)

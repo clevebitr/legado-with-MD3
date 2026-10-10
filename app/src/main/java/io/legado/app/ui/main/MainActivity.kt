@@ -9,7 +9,6 @@ import android.text.format.DateUtils
 import android.view.InputDevice
 import android.view.KeyEvent
 import android.view.MotionEvent
-import androidx.activity.compose.BackHandler
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.EnterTransition
@@ -421,6 +420,7 @@ open class MainActivity : BaseComposeActivity(), AudioPlay.CallBack {
         val orientation = resources.configuration.orientation
         val smallestWidthDp = resources.configuration.smallestScreenWidthDp
         val configuration = LocalAppUiConfiguration.current
+        // NavDisplay 级预测转场的 gate 在 lambda 里读值，用 rememberUpdatedState 保证拿到最新设置。
         val predictiveBackEnabled by rememberUpdatedState(configuration.appShell.predictiveBackEnabled)
         val tabletInterface = configuration.appShell.tabletInterface
         val defaultToReadFlow = remember(otherSettingsGateway) {
@@ -608,18 +608,6 @@ open class MainActivity : BaseComposeActivity(), AudioPlay.CallBack {
                     MainNavigator.onBackStackChanged()
                 }
         }
-        // 兜底返回：必须注册在导航宿主**之前**。AndroidX 的返回回调按「后注册先调用」派发，
-        // 这样页面/弹层/覆盖层自己的处理器永远优先，只有没人接的时候才由这里弹一层。
-        // 同时它必须常驻（不按根页面判断）：子页面刚压入、nav3 的处理器尚未启用的空窗里，
-        // 只要没有任何启用的处理器，系统就会把返回当成「应用不处理」而显示预测性返回手势。
-        BackHandler(
-            enabled = shouldHandleActivityBack(
-                predictiveBackEnabled = configuration.appShell.predictiveBackEnabled,
-                playerPresent = playerVisible || morphPresent,
-            )
-        ) {
-            MainNavigator.navigateBack(this@MainActivity, backStack)
-        }
         SharedTransitionLayout {
             // 启动验证做成单独的 screen：门槛未过时完全不组合应用界面，
             // 因此验证页背后看不到书架/阅读界面，也没有可交互的入口
@@ -650,7 +638,6 @@ open class MainActivity : BaseComposeActivity(), AudioPlay.CallBack {
                                                 NavEntry(top) {}.contentKey == it
                                             } == true
                                         },
-                                        predictiveBackEnabled = { predictiveBackEnabled },
                                     )
                                 },
                                 SinglePaneSceneStrategy(),
@@ -786,7 +773,6 @@ open class MainActivity : BaseComposeActivity(), AudioPlay.CallBack {
                         morph = readAloudMorph,
                         visible = readAloudPlayerVisible,
                         awaitCapsuleAnchor = pageShellShowCapsule,
-                        predictiveBackEnabled = configuration.appShell.predictiveBackEnabled,
                         onDismiss = { readAloudPlayerVisible = false },
                         onSwitchToClassic = { bookUrl ->
                             // 栈顶是阅读界面：让它直接落在经典朗读控制页；
@@ -835,7 +821,6 @@ open class MainActivity : BaseComposeActivity(), AudioPlay.CallBack {
                                 morph = readAloudMorph,
                                 visible = audioPlayerVisible,
                                 awaitCapsuleAnchor = pageShellShowCapsule,
-                                predictiveBackEnabled = configuration.appShell.predictiveBackEnabled,
                                 onDismiss = { audioPlayerVisible = false },
                             )
                         }

@@ -115,6 +115,7 @@ import io.legado.app.ui.book.group.GroupEditSheet
 import io.legado.app.ui.book.info.GroupSelectSheet
 import io.legado.app.ui.main.bookCoverSharedElementKey
 import io.legado.app.ui.theme.LegadoTheme
+import io.legado.app.ui.theme.LocalAppUiConfiguration
 import io.legado.app.ui.theme.ProvideAppDensity
 import io.legado.app.ui.theme.ThemeResolver
 import io.legado.app.ui.theme.adaptiveContentPaddingBookshelf
@@ -507,10 +508,14 @@ fun BookshelfScreen(
 
     val currentGroupName by remember { derivedStateOf { uiState.currentGroupName } }
 
+    // 预测性返回开关从全局配置读：关闭时只跳过跟手动画，返回本身照旧生效。
+    val predictiveBackEnabled = LocalAppUiConfiguration.current.appShell.predictiveBackEnabled
     PredictiveBackHandler(enabled = bookGroupStyle == 2 && !isInFolderRoot && !isEditMode) { progress ->
         try {
             progress.collect { backEvent ->
-                transitionState.seekTo(backEvent.progress, targetState = true)
+                if (predictiveBackEnabled) {
+                    transitionState.seekTo(backEvent.progress, targetState = true)
+                }
             }
             onIntent(BookshelfIntent.SetInFolderRoot(true))
             transitionState.animateTo(true)

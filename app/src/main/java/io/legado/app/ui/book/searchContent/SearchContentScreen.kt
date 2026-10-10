@@ -56,6 +56,7 @@ import io.legado.app.R
 import io.legado.app.data.entities.SearchContentHistory
 import io.legado.app.ui.main.LocalSearchOverlayAnimation
 import io.legado.app.ui.theme.LegadoTheme
+import io.legado.app.ui.theme.LocalAppUiConfiguration
 import io.legado.app.ui.theme.adaptiveHorizontalPadding
 import io.legado.app.ui.widget.components.AppFloatingActionButton
 import io.legado.app.ui.widget.components.AppScaffold
@@ -87,10 +88,11 @@ import org.koin.androidx.compose.koinViewModel
 fun SearchContentRouteScreen(
     onBack: () -> Unit,
     isTopRoute: Boolean = true,
-    predictiveBackEnabled: Boolean = true,
     autoFocus: Boolean = true,
     viewModel: SearchContentViewModel = koinViewModel()
 ) {
+    // 预测性返回开关从全局配置读，调用方不再透传。
+    val predictiveBackEnabled = LocalAppUiConfiguration.current.appShell.predictiveBackEnabled
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     LaunchedEffect(viewModel) {
         viewModel.effects.collect { effect ->

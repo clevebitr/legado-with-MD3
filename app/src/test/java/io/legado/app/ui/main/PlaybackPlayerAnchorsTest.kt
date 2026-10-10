@@ -52,20 +52,8 @@ class PlaybackPlayerAnchorsTest {
     }
 
     @Test
-    fun otherRoutesRailAndStandardBottomBarUseGlobalCapsule() {
-        assertFalse(shouldUseHomePlaybackCapsule(false, true, true, false))
+    fun otherRoutesRailAndStandardBottomBarUseGlobalCapsule() {        assertFalse(shouldUseHomePlaybackCapsule(false, true, true, false))
         assertFalse(shouldUseHomePlaybackCapsule(true, true, true, true))
         assertFalse(shouldUseHomePlaybackCapsule(true, true, false, false))
-    }
-
-    @Test
-    fun backFallbackStaysEnabledOnSubPagesWhilePredictiveBackIsOff() {
-        // 关闭预测性返回时任何深度都常驻：AndroidX 只在「存在启用的返回处理器」时才向系统
-        // 注册 OnBackInvokedCallback，子页面刚压入、nav3 处理器尚未启用的空窗里若没有任何
-        // 启用的处理器，系统会当成应用不处理返回而显示预测性返回手势。
-        assertTrue(shouldHandleActivityBack(predictiveBackEnabled = false, playerPresent = false))
-        assertFalse(shouldHandleActivityBack(predictiveBackEnabled = true, playerPresent = false))
-        assertFalse(shouldHandleActivityBack(predictiveBackEnabled = false, playerPresent = true))
-        assertFalse(shouldHandleActivityBack(predictiveBackEnabled = true, playerPresent = true))
     }
 }

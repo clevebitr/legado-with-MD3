@@ -24,6 +24,7 @@ import io.legado.app.BuildConfig
 import io.legado.app.constant.EventBus
 import io.legado.app.constant.Theme
 import io.legado.app.domain.gateway.AppLocaleGateway
+import io.legado.app.domain.gateway.AppShellSettingsGateway
 import io.legado.app.domain.gateway.AppUiConfigurationGateway
 import io.legado.app.domain.gateway.ThemeSettingsGateway
 import io.legado.app.domain.model.settings.AppUiConfiguration
@@ -55,6 +56,7 @@ abstract class BaseComposeActivity(
     private val appLocaleGateway by inject<AppLocaleGateway>()
     private val appUiConfigurationGateway by inject<AppUiConfigurationGateway>()
     private val themeSettingsGateway by inject<ThemeSettingsGateway>()
+    private val shellSettingsGateway by inject<AppShellSettingsGateway>()
     private var lastUiConfiguration: AppUiConfiguration? = null
 
     @Composable
@@ -65,6 +67,8 @@ abstract class BaseComposeActivity(
         AppContextWrapper.applyFont(this)
 
         super.onCreate(savedInstanceState)
+        // 预测性返回的运行时开关：与 BaseActivity 共用同一实现，Compose 宿主不再单独挂 BackHandler。
+        PredictiveBackHost(this, shellSettingsGateway).start()
         lastUiConfiguration = appUiConfigurationGateway.currentConfiguration
         enableEdgeToEdge()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {

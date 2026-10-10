@@ -50,6 +50,7 @@ import io.legado.app.ui.book.readaloud.morph.PlayerPanelCornerRadii
 import io.legado.app.ui.book.readaloud.morph.computeMorphPanelAlpha
 import io.legado.app.ui.book.readaloud.morph.computePredictiveMorphProgress
 import io.legado.app.ui.theme.LegadoTheme
+import io.legado.app.ui.theme.LocalAppUiConfiguration
 import io.legado.app.ui.widget.components.card.TextCard
 import io.legado.app.ui.widget.components.image.cover.BookCoverImage
 import kotlinx.coroutines.CancellationException
@@ -90,12 +91,13 @@ fun BookMorphHost(
     backgroundColor: Color = LegadoTheme.colorScheme.background,
     modifier: Modifier = Modifier,
     backEnabled: Boolean = true,
-    predictiveBackEnabled: Boolean = true,
     hasTargetCover: Boolean = false,
     onDismiss: () -> Boolean,
     onBackRequested: (() -> Unit)? = null,
     content: @Composable (onCollapse: () -> Unit) -> Unit,
 ) {
+    // 预测性返回开关只在这里读一次：调用方不再逐个透传，新增宿主自动受控。
+    val predictiveBackEnabled = LocalAppUiConfiguration.current.appShell.predictiveBackEnabled
     val view = LocalView.current
     val scope = rememberCoroutineScope()
     val morph = rememberBookMorphState(anchorKey, hasTargetCover)

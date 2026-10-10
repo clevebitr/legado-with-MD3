@@ -152,7 +152,6 @@ fun ReadBookRouteScreen(
     animatedVisibilityScope: AnimatedVisibilityScope? = null,
     sharedCoverKey: String? = null,
     isTopRoute: Boolean = true,
-    predictiveBackEnabled: Boolean = true,
     onEffectsReady: () -> Unit = {},
     onOpenSearch: (word: String?, bookUrl: String, autoFocus: Boolean) -> Unit = { _, _, _ -> },
     onOpenBookInfo: (name: String, author: String, bookUrl: String) -> Unit,
@@ -680,7 +679,6 @@ fun ReadBookRouteScreen(
         anchorKey = sharedCoverKey,
         backgroundColor = readerPlaceholderColor,
         backEnabled = canMorphBack,
-        predictiveBackEnabled = predictiveBackEnabled,
         onDismiss = performExit,
         onBackRequested = requestClose,
     ) { onCollapse ->

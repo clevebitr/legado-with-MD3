@@ -83,7 +83,6 @@ fun BookInfoRouteScreen(
     sharedCoverKey: String? = null,
     useCoverMorph: Boolean = true,
     detailCoverKey: String = bookInfoCoverSharedElementKey(bookUrl),
-    predictiveBackEnabled: Boolean = true,
     isTopRoute: Boolean = true,
 ) {
     val context = LocalContext.current
@@ -289,7 +288,6 @@ fun BookInfoRouteScreen(
         anchorKey = effectiveCoverKey,
         backgroundColor = LegadoTheme.colorScheme.background,
         backEnabled = canMorphBack,
-        predictiveBackEnabled = predictiveBackEnabled,
         hasTargetCover = true,
         onDismiss = dismissBookInfo,
     ) { onCollapse ->

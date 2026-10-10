@@ -29,6 +29,12 @@
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-feature android:name="android.hardware.camera" android:required="false" />
 
+    <!--
+        保持 enableOnBackInvokedCallback=true：开启预测性返回时需要它才有进度回调。
+        运行时的用户开关由 io.legado.app.base.PredictiveBackHost 模拟（关闭时在 Activity 级
+        拦截返回，让系统不进预测模式）——平台只有这个静态属性，没有运行时 API，
+        所以不要以为删掉这行就能实现“关闭”。
+    -->
     <application
         android:name=".App"
         android:allowBackup="true"

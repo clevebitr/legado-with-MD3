@@ -953,7 +953,6 @@ fun MainActivity.mainEntryProvider(
                 isTopRoute = (backStack.lastOrNull() as? MainRouteReadBook)?.let {
                     route.bookUrl == null || it.bookUrl == route.bookUrl
                 } ?: false,
-                predictiveBackEnabled = configuration.appShell.predictiveBackEnabled,
                 onEffectsReady = { effectsReady.complete(Unit) },
                 onOpenToc = { bookUrl, page -> onNavigateToRoute(MainRouteToc(bookUrl, page)) },
                 onOpenReplaceRule = { bookUrl, editor ->
@@ -1085,7 +1084,6 @@ fun MainActivity.mainEntryProvider(
             viewModel = mangaViewModel,
             onOpenToc = { bookUrl, page -> onNavigateToRoute(MainRouteToc(bookUrl, page)) },
             restoreSystemBarsVisible = configuration.appShell.showStatusBar,
-            predictiveBackEnabled = configuration.appShell.predictiveBackEnabled,
             sharedTransitionScope = sharedTransitionScope,
             animatedVisibilityScope = LocalNavAnimatedContentScope.current,
             sharedCoverKey = route.sharedCoverKey,
@@ -1152,7 +1150,6 @@ fun MainActivity.mainEntryProvider(
         SearchContentRouteScreen(
             viewModel = viewModel,
             isTopRoute = backStack.lastOrNull() == route,
-            predictiveBackEnabled = configuration.appShell.predictiveBackEnabled,
             autoFocus = route.autoFocus,
             onBack = { onNavigateBack() },
         )
@@ -1448,7 +1445,6 @@ fun MainActivity.mainEntryProvider(
             sharedCoverKey = route.sharedCoverKey ?: bookCoverSharedElementKey(route.bookUrl),
             useCoverMorph = route.useCoverMorph,
             detailCoverKey = bookInfoCoverSharedElementKey(route.bookUrl, route.openRequestId),
-            predictiveBackEnabled = configuration.appShell.predictiveBackEnabled,
             isTopRoute = backStack.lastOrNull() == route,
         )
     }
@@ -1793,7 +1789,6 @@ internal fun MainActivity.AudioPlayerMorphOverlay(
     morph: ReadAloudMorphState,
     visible: Boolean,
     awaitCapsuleAnchor: Boolean,
-    predictiveBackEnabled: Boolean,
     onDismiss: () -> Unit,
 ) {
     // 浮层关闭后释放页面 VM；播放服务和会话继续保留，重新打开会重新同步书籍。
@@ -1942,7 +1937,6 @@ internal fun MainActivity.AudioPlayerMorphOverlay(
         morph = morph,
         visible = visible,
         awaitCapsuleAnchor = awaitCapsuleAnchor,
-        predictiveBackEnabled = predictiveBackEnabled,
         verticalDragEnabled = true,
         onBeforeCollapse = refreshAudioAnchor,
         backEnabled = uiState.activeSheet == null && !showAudioChangeSource,

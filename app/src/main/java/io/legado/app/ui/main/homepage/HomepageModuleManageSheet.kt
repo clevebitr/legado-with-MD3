@@ -36,6 +36,7 @@ import io.legado.app.ui.main.homepage.manage.CustomSetAddModulesPage
 import io.legado.app.ui.main.homepage.manage.SetDetailPage
 import io.legado.app.ui.main.homepage.manage.SetListPage
 import io.legado.app.ui.main.homepage.manage.SourceBrowseDetailPage
+import io.legado.app.ui.theme.LocalAppUiConfiguration
 import io.legado.app.ui.widget.components.AppTextField
 import io.legado.app.ui.widget.components.alert.AppAlertDialog
 import io.legado.app.ui.widget.components.button.series.MediumTonalButton
@@ -199,12 +200,14 @@ fun <T> HomepageModuleManageSheet(
         }
     ) {
         var backProgress by remember { mutableFloatStateOf(0f) }
+        // 预测性返回开关从全局配置读：关闭时只跳过跟手进度，层级返回本身照旧生效。
+        val predictiveBackEnabled = LocalAppUiConfiguration.current.appShell.predictiveBackEnabled
         PredictiveBackHandler(
             enabled = showCustomSetAddModules || browsingDetail || showSourceBrowser || browsingSourceUrl != null || selectingSetUrl != null
         ) { progress ->
             try {
                 progress.collect { event ->
-                    backProgress = event.progress
+                    if (predictiveBackEnabled) backProgress = event.progress
                 }
                 when {
                     showCustomSetAddModules -> showCustomSetAddModules = false
