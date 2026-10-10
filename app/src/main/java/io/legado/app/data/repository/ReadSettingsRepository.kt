@@ -145,6 +145,9 @@ class ReadSettingsRepository(
     suspend fun setReadAloudDetachReminderEnabled(value: Boolean) =
         settingsRepository.putBoolean(PreferKey.readAloudDetachReminderEnabled, value)
 
+    suspend fun setReadAloudKeepFollowingOnManualTurn(value: Boolean) =
+        settingsRepository.putBoolean(PreferKey.readAloudKeepFollowingOnManualTurn, value)
+
     suspend fun setSelectText(value: Boolean) =
         settingsRepository.putBoolean(PreferKey.selectText, value)
 
@@ -409,6 +412,8 @@ class ReadSettingsRepository(
             autoSuggestDayNight = compatDsValue(Keys.AutoSuggestDayNight, false),
             readingAnchorEnabled = compatDsValue(Keys.ReadingAnchorEnabled, true),
             readAloudDetachReminderEnabled = compatDsValue(Keys.ReadAloudDetachReminderEnabled, false),
+            readAloudKeepFollowingOnManualTurn =
+                compatDsValue(Keys.ReadAloudKeepFollowingOnManualTurn, false),
             selectText = compatDsValue(Keys.SelectText, true),
             noAnimScrollPage = compatDsValue(Keys.NoAnimScrollPage, false),
             clickImgWay = compatDsValue(Keys.ClickImgWay, "2"),
@@ -529,6 +534,8 @@ class ReadSettingsRepository(
         val AutoSuggestDayNight = booleanPreferencesKey(PreferKey.autoSuggestDayNight)
         val ReadingAnchorEnabled = booleanPreferencesKey(PreferKey.readingAnchorEnabled)
         val ReadAloudDetachReminderEnabled = booleanPreferencesKey(PreferKey.readAloudDetachReminderEnabled)
+        val ReadAloudKeepFollowingOnManualTurn =
+            booleanPreferencesKey(PreferKey.readAloudKeepFollowingOnManualTurn)
         val SelectText = booleanPreferencesKey(PreferKey.selectText)
         val NoAnimScrollPage = booleanPreferencesKey(PreferKey.noAnimScrollPage)
         val ClickImgWay = stringPreferencesKey(PreferKey.clickImgWay)
@@ -661,6 +668,7 @@ internal fun ReadSettings.toGatewayPrefMap(): Map<String, Any?> = mapOf(
     PreferKey.autoSuggestDayNight to autoSuggestDayNight,
     PreferKey.readingAnchorEnabled to readingAnchorEnabled,
     PreferKey.readAloudDetachReminderEnabled to readAloudDetachReminderEnabled,
+    PreferKey.readAloudKeepFollowingOnManualTurn to readAloudKeepFollowingOnManualTurn,
     PreferKey.selectText to selectText,
     PreferKey.noAnimScrollPage to noAnimScrollPage,
     PreferKey.clickImgWay to clickImgWay,

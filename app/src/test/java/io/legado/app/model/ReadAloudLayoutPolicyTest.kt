@@ -61,4 +61,48 @@ class ReadAloudLayoutPolicyTest {
             )
         )
     }
+
+    @Test
+    fun keepFollowingSwitchWinsOverDetachReminder() {
+        assertEquals(
+            ReadAloudManualTurnAction.BrowseThenReturn,
+            readAloudManualTurnAction(
+                keepFollowingOnManualTurn = true,
+                detachReminderEnabled = true,
+            ),
+        )
+    }
+
+    @Test
+    fun keepFollowingSwitchAloneAllowsBrowsing() {
+        assertEquals(
+            ReadAloudManualTurnAction.BrowseThenReturn,
+            readAloudManualTurnAction(
+                keepFollowingOnManualTurn = true,
+                detachReminderEnabled = false,
+            ),
+        )
+    }
+
+    @Test
+    fun detachReminderKeepsLegacyDetachBehaviour() {
+        assertEquals(
+            ReadAloudManualTurnAction.DetachFollow,
+            readAloudManualTurnAction(
+                keepFollowingOnManualTurn = false,
+                detachReminderEnabled = true,
+            ),
+        )
+    }
+
+    @Test
+    fun bothSwitchesOffRestartPlaybackOnTheNewPage() {
+        assertEquals(
+            ReadAloudManualTurnAction.RestartOnPage,
+            readAloudManualTurnAction(
+                keepFollowingOnManualTurn = false,
+                detachReminderEnabled = false,
+            ),
+        )
+    }
 }

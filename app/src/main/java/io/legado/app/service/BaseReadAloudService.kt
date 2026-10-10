@@ -880,15 +880,33 @@ abstract class BaseReadAloudService : BaseService(),
             pageStart = chapter::pageStart,
         )
         if (targetPageIndex == pageIndex) return false
-        // 页面脱离朗读位置（用户手动翻页）后不再驱动可见页面，仅推进朗读内部页游标
-        val follow = sessionStore.state.value.followReadAloudPosition
+        if (!sessionStore.state.value.followReadAloudPosition) {
+            // 页面脱离朗读位置（用户手动翻页）后不再驱动可见页面，仅推进朗读内部页游标
+            if (targetPageIndex > pageIndex) pageIndex = targetPageIndex
+            return true
+        }
+        if (sessionStore.state.value.browsingWhileSpeaking) {
+            // 手动浏览中：朗读推进到新页，结束浏览并把页面跳回朗读处
+            pageIndex = targetPageIndex
+            endBrowsingAndReturnToSpeech(chapter)
+            return true
+        }
         repeat(targetPageIndex - pageIndex) {
             pageIndex++
-            if (follow) {
-                withSpeechNavigation { ReadBook.moveToNextPage() }
-            }
+            withSpeechNavigation { ReadBook.moveToNextPage() }
         }
         return true
+    }
+
+    /**
+     * 手动浏览结束：把可见页面按绝对位置跳回朗读处，并标记这次移动由朗读驱动，
+     * 免得 ReadBook 把它当成用户手动翻页而再次进入浏览状态。
+     */
+    private fun endBrowsingAndReturnToSpeech(chapter: ReaderReadAloudChapter) {
+        sessionStore.endManualBrowsing()
+        withSpeechNavigation {
+            ReadBook.syncReadAloudPage(chapter.chapterIndex, chapter.pageStart(pageIndex))
+        }
     }
 
     /**
@@ -1036,7 +1054,11 @@ abstract class BaseReadAloudService : BaseService(),
                     && readAloudNumber >= it.pageStart(pageIndex + 1)
                 ) {
                     pageIndex++
-                    withSpeechNavigation { ReadBook.moveToNextPage() }
+                    if (sessionStore.state.value.browsingWhileSpeaking) {
+                        endBrowsingAndReturnToSpeech(it)
+                    } else {
+                        withSpeechNavigation { ReadBook.moveToNextPage() }
+                    }
                 }
             }
             upTtsProgress(readAloudNumber + 1)
@@ -1349,7 +1371,12 @@ abstract class BaseReadAloudService : BaseService(),
         if (sessionStore.state.value.followReadAloudPosition &&
             ReadBook.durChapterIndex == chapter.chapterIndex
         ) {
-            ReadBook.syncReadAloudPage(chapter.chapterIndex, chapter.pageStart(pageIndex))
+            if (sessionStore.state.value.browsingWhileSpeaking) {
+                // 朗读换段：结束手动浏览，页面跳回朗读位置（翻页不影响朗读的自动跳转）
+                endBrowsingAndReturnToSpeech(chapter)
+            } else {
+                ReadBook.syncReadAloudPage(chapter.chapterIndex, chapter.pageStart(pageIndex))
+            }
         }
         if (wasPaused) {
             // HTTP 引擎恢复时重新生成目标段音频，不能恢复已作废的播放器队列。

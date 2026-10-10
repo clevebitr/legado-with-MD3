@@ -59,4 +59,30 @@ class ReadAloudSessionStoreTest {
         store.restoreReadAloudFollow()
         assertTrue(store.state.value.followReadAloudPosition)
     }
+
+    @Test
+    fun `manual browsing keeps following and is cleared by speech advance`() {
+        val store = ReadAloudSessionStore()
+
+        store.startManualBrowsing()
+        assertTrue(store.state.value.followReadAloudPosition)
+        assertTrue(store.state.value.browsingWhileSpeaking)
+
+        store.endManualBrowsing()
+        assertTrue(store.state.value.followReadAloudPosition)
+        assertFalse(store.state.value.browsingWhileSpeaking)
+    }
+
+    @Test
+    fun `detach and restore clear a pending manual browsing session`() {
+        val store = ReadAloudSessionStore()
+
+        store.startManualBrowsing()
+        store.detachReadAloudFollow()
+        assertFalse(store.state.value.browsingWhileSpeaking)
+
+        store.startManualBrowsing()
+        store.restoreReadAloudFollow()
+        assertFalse(store.state.value.browsingWhileSpeaking)
+    }
 }

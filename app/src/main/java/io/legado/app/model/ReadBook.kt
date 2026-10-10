@@ -1019,26 +1019,33 @@ object ReadBook : CoroutineScope by MainScope(), KoinComponent {
 
     /**
      * 用户手动导航（翻页/跳章/拖动进度/滚动）前的朗读处理：
+     * - 保持跟随（朗读设置里的新开关）：允许浏览，朗读不停不重启，推进到下一页时自动跳回朗读位置；
      * - 脱离提示开启：页面脱离朗读位置（显示"回到朗读位置"悬浮条）；
      * - 脱离提示关闭：朗读跟随页面，保持跟随状态（翻页后从新页面重新朗读）。
      * 朗读服务自身驱动的页面移动（[BaseReadAloudService.speechDrivingNavigation]）不参与。
      */
     private fun prepareManualNavigation() {
         if (!BaseReadAloudService.isRun || BaseReadAloudService.speechDrivingNavigation) return
-        if (ReadBookConfig.readAloudDetachReminderEnabled) {
-            readAloudSessionStore.detachReadAloudFollow()
-        } else {
-            readAloudSessionStore.restoreReadAloudFollow()
+        when (manualTurnAction()) {
+            ReadAloudManualTurnAction.DetachFollow -> readAloudSessionStore.detachReadAloudFollow()
+            ReadAloudManualTurnAction.RestartOnPage -> readAloudSessionStore.restoreReadAloudFollow()
+            ReadAloudManualTurnAction.BrowseThenReturn -> readAloudSessionStore.startManualBrowsing()
         }
     }
 
+    private fun manualTurnAction(): ReadAloudManualTurnAction =
+        readAloudManualTurnAction(
+            keepFollowingOnManualTurn = ReadBookConfig.readAloudKeepFollowingOnManualTurn,
+            detachReminderEnabled = ReadBookConfig.readAloudDetachReminderEnabled,
+        )
+
     /**
-     * 手动导航后：脱离提示关闭时，朗读从新页面重新开始（跟随页面）并返回 true；
-     * 开启时保持脱离状态，不重启朗读，返回 false。
+     * 手动导航后：只有"跟随页面"那一档会把朗读从新页面重新开始（返回 true）；
+     * 脱离提示与允许浏览都不重启朗读，返回 false。
      */
     private fun followReadAloudAfterManualNavigation(): Boolean {
         if (!BaseReadAloudService.isRun || BaseReadAloudService.speechDrivingNavigation) return false
-        if (ReadBookConfig.readAloudDetachReminderEnabled) return false
+        if (manualTurnAction() != ReadAloudManualTurnAction.RestartOnPage) return false
         readAloud(play = !BaseReadAloudService.pause)
         return true
     }
@@ -1249,7 +1256,10 @@ object ReadBook : CoroutineScope by MainScope(), KoinComponent {
         readerChapterInputWindow.current?.let { input ->
             if (BaseReadAloudService.isRun) {
                 // 页面已脱离朗读位置（用户手动导航）：既不重启朗读到当前页，也不把页面拉回朗读位置
-                if (readAloudSessionStore.state.value.followReadAloudPosition) {
+                // 允许浏览中同理：朗读继续读自己的位置，推进到下一页时由朗读服务跳回。
+                if (readAloudSessionStore.state.value.followReadAloudPosition &&
+                    !readAloudSessionStore.state.value.browsingWhileSpeaking
+                ) {
                     if (shouldRestartReadAloudAfterContentLoad(
                             preserveReadAloudPosition = preserveReadAloudPosition,
                             serviceChapterIndex = BaseReadAloudService.currentChapterIndex,

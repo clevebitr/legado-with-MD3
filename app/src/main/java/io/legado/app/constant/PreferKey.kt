@@ -119,6 +119,9 @@ object PreferKey {
     const val autoSuggestDayNight = "autoSuggestDayNight"
     const val readingAnchorEnabled = "readingAnchorEnabled"
     const val readAloudDetachReminderEnabled = "readAloudDetachReminderEnabled"
+
+    /** 手动翻页/滚动时不打断朗读：页面停在用户位置，朗读推进到下一页时自动跳回朗读位置。 */
+    const val readAloudKeepFollowingOnManualTurn = "readAloudKeepFollowingOnManualTurn"
     const val importKeepName = "importKeepName"
     const val importKeepGroup = "importKeepGroup"
     const val screenOrientation = "screenOrientation"

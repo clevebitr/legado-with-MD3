@@ -41,6 +41,11 @@ data class ReadSettings(
     val autoSuggestDayNight: Boolean = false,
     val readingAnchorEnabled: Boolean = true,
     val readAloudDetachReminderEnabled: Boolean = false,
+    /**
+     * 手动翻页/滚动不打断朗读：朗读继续读自己的位置，页面停在用户翻到的地方，
+     * 朗读推进到下一页时再自动跳回朗读位置（优先级高于 [readAloudDetachReminderEnabled]）。
+     */
+    val readAloudKeepFollowingOnManualTurn: Boolean = false,
     val selectText: Boolean = true,
     val noAnimScrollPage: Boolean = false,
     val clickImgWay: String = "2",
